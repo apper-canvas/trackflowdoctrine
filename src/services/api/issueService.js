@@ -19,7 +19,7 @@ export const issueService = {
     return { ...issue };
   },
 
-  async create(issueData) {
+async create(issueData) {
     await delay(400);
     
     const maxId = Math.max(...issues.map(issue => issue.Id));
@@ -38,7 +38,8 @@ export const issueService = {
       updatedAt: new Date().toISOString(),
       assignee: issueData.assignee || null,
       dueDate: issueData.dueDate || null,
-      labels: issueData.labels || []
+      labels: issueData.labels || [],
+      activities: []
     };
 
     issues.push(newIssue);
@@ -53,11 +54,24 @@ export const issueService = {
       throw new Error(`Issue with ID ${id} not found`);
     }
 
-    const updatedIssue = {
+const updatedIssue = {
       ...issues[index],
       ...updateData,
       updatedAt: new Date().toISOString()
     };
+    
+    if (updateData.newActivity) {
+      const maxActivityId = updatedIssue.activities && updatedIssue.activities.length > 0
+        ? Math.max(...updatedIssue.activities.map(a => a.Id))
+        : 0;
+      const newActivity = {
+        ...updateData.newActivity,
+        Id: maxActivityId + 1,
+        timestamp: new Date().toISOString()
+      };
+      updatedIssue.activities = [...(updatedIssue.activities || []), newActivity];
+      delete updatedIssue.newActivity;
+    }
 
     issues[index] = updatedIssue;
     return { ...updatedIssue };

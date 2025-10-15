@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import Modal from "@/components/atoms/Modal";
 import Button from "@/components/atoms/Button";
 import Badge from "@/components/atoms/Badge";
+import Textarea from "@/components/atoms/Textarea";
 import ApperIcon from "@/components/ApperIcon";
 import IssueForm from "./IssueForm";
 
@@ -15,9 +16,10 @@ const IssueDetailModal = ({
   onDelete,
   onDuplicate 
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
+  const [commentText, setCommentText] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
   if (!issue) return null;
 
   const getTypeIcon = (type) => {
@@ -33,13 +35,34 @@ const IssueDetailModal = ({
     return format(new Date(date), "PPp");
   };
 
-  const handleUpdate = async (updatedData) => {
+const handleUpdate = async (updatedData) => {
     try {
       await onUpdate(issue.Id, updatedData);
       setIsEditing(false);
       toast.success("Issue updated successfully");
     } catch (error) {
       toast.error("Failed to update issue");
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!commentText.trim()) return;
+    
+    setSubmittingComment(true);
+    try {
+      await onUpdate(issue.Id, {
+        newActivity: {
+          type: "comment",
+          text: commentText.trim(),
+          user: issue.assignee || "Current User"
+        }
+      });
+      setCommentText("");
+      toast.success("Comment added successfully");
+    } catch (error) {
+      toast.error("Failed to add comment");
+    } finally {
+      setSubmittingComment(false);
     }
   };
 
@@ -201,6 +224,89 @@ const IssueDetailModal = ({
               </div>
             </div>
           )}
+</div>
+
+        {/* Activity Log Section */}
+        <div className="border-t border-slate-200 pt-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Activity</h3>
+          
+          {/* Activity Feed */}
+          <div className="space-y-4 mb-6">
+            {issue.activities && issue.activities.length > 0 ? (
+              [...issue.activities].reverse().map((activity) => (
+                <div key={activity.Id} className="flex gap-3">
+                  {/* Avatar */}
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                      {activity.type === "comment" ? (
+                        <ApperIcon name="MessageCircle" size={16} className="text-primary-600" />
+                      ) : activity.type === "status_change" ? (
+                        <ApperIcon name="GitBranch" size={16} className="text-slate-600" />
+                      ) : activity.type === "priority_change" ? (
+                        <ApperIcon name="Flag" size={16} className="text-slate-600" />
+                      ) : (
+                        <ApperIcon name="UserCheck" size={16} className="text-slate-600" />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Activity Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium text-slate-900 text-sm">
+                        {activity.user}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {format(new Date(activity.timestamp), "MMM d, yyyy 'at' h:mm a")}
+                      </span>
+                    </div>
+                    
+                    {activity.type === "comment" ? (
+                      <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700">
+                        {activity.text}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-600 italic">
+                        {activity.text}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500 text-center py-4">No activity yet</p>
+            )}
+          </div>
+
+          {/* Add Comment Form */}
+          <div className="border-t border-slate-200 pt-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
+                  <ApperIcon name="User" size={16} className="text-white" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <Textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="mb-2"
+                  rows={3}
+                  disabled={submittingComment}
+                />
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleAddComment}
+                    disabled={!commentText.trim() || submittingComment}
+                    size="sm"
+                  >
+                    {submittingComment ? "Adding..." : "Add Comment"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Modal>
 
