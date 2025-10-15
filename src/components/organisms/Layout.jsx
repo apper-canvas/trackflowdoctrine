@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import Header from "./Header";
+import Header from "@/components/organisms/Header";
+import Sidebar from "@/components/organisms/Sidebar";
 import FilterPanel from "@/components/molecules/FilterPanel";
 
 const Layout = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [filters, setFilters] = useState({
     status: [],
@@ -11,11 +13,13 @@ const Layout = () => {
     type: []
   });
   const [searchQuery, setSearchQuery] = useState("");
+const handleSidebarToggle = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   const handleFilterToggle = () => {
     setIsFilterPanelOpen(!isFilterPanelOpen);
   };
-
 const handleCreateIssue = () => {
     // This will be handled by the page components
     const event = new window.CustomEvent("createIssue");
@@ -37,26 +41,39 @@ const handleFilterChange = (newFilters) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+<div className="min-h-screen bg-slate-50 flex flex-col">
       <Header
         onCreateIssue={handleCreateIssue}
         onSearch={handleSearch}
         onFilterToggle={handleFilterToggle}
+        onSidebarToggle={handleSidebarToggle}
       />
       
       <div className="flex-1 flex overflow-hidden">
-        <FilterPanel
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          isOpen={isFilterPanelOpen}
-          onToggle={handleFilterToggle}
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onClose={() => setIsSidebarOpen(false)} 
         />
         
-        <main className="flex-1 overflow-hidden">
-          <div className="h-full p-6">
-            <Outlet />
-          </div>
-        </main>
+        <div className="flex-1 flex overflow-hidden">
+          <FilterPanel
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            isOpen={isFilterPanelOpen}
+            onToggle={handleFilterToggle}
+          />
+          
+<main className="flex-1 overflow-hidden">
+            <div className="h-full p-6">
+              <Outlet 
+                context={{
+                  filters,
+                  searchQuery
+                }}
+              />
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

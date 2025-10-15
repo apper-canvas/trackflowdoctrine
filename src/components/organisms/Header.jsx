@@ -1,80 +1,45 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
+import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
 import SearchBar from "@/components/molecules/SearchBar";
-import ApperIcon from "@/components/ApperIcon";
 
-const Header = ({ onCreateIssue, onSearch, onFilterToggle }) => {
-  const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+function Header({ onCreateIssue, onSearch, onFilterToggle, onSidebarToggle }) {
+const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+return (
+    <motion.header
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm"
+    >
+      <div className="px-6 h-16 flex items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={onSidebarToggle}
+            className="md:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            aria-label="Toggle sidebar"
+          >
+            <ApperIcon name="Menu" size={24} className="text-slate-700" />
+          </button>
+          
+          <SearchBar
+            onSearch={onSearch}
+            placeholder="Search issues..."
+            className="w-full md:w-96"
+          />
+</div>
 
-  const isActive = (path) => {
-    if (path === "/" && location.pathname === "/") return true;
-    if (path === "/board" && (location.pathname === "/" || location.pathname === "/board")) return true;
-    return location.pathname === path;
-  };
-
-  const navItems = [
-    { path: "/board", label: "Board View", icon: "Columns3" },
-    { path: "/list", label: "List View", icon: "List" },
-  ];
-
-  return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo and Navigation */}
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg flex items-center justify-center shadow-lg">
-                <ApperIcon name="Bug" size={18} className="text-white" />
-              </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                TrackFlow
-              </h1>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`
-                    flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200
-                    ${isActive(item.path)
-                      ? "bg-primary-100 text-primary-700 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                    }
-                  `}
-                >
-                  <ApperIcon name={item.icon} size={16} />
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-          {/* Search and Actions */}
-          <div className="flex items-center gap-4">
-            {/* Search Bar - Hidden on mobile */}
-            <div className="hidden md:block min-w-[300px]">
-              <SearchBar
-                placeholder="Search issues..."
-                onSearch={onSearch}
-              />
-            </div>
-
-            {/* Filter Toggle - Mobile Only */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onFilterToggle}
-              className="md:hidden"
-            >
-              <ApperIcon name="Filter" size={16} />
-            </Button>
+<div className="flex items-center gap-3">
+          <Button
+            onClick={onFilterToggle}
+            variant="ghost"
+            className="hidden md:flex"
+          >
+            <ApperIcon name="Filter" size={18} />
+            <span>Filters</span>
+          </Button>
 
             {/* Create Issue Button */}
             <Button onClick={onCreateIssue} className="shadow-lg">
